@@ -24,15 +24,15 @@
         <activity
             android:name=".MainActivity2"
             android:label="@string/app_name" >
-        </activity>
-        <activity
-            android:name=".TestAudioPlayback"
-            android:label="Test Audio Playback" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+        </activity>
+        <activity
+            android:name=".TestAudioPlayback"
+            android:label="Test Audio Playback" >
         </activity>
     </application>
 

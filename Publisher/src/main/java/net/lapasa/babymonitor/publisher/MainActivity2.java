@@ -4,10 +4,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.FileDescriptor;
@@ -50,7 +52,7 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
 
 
         console = (TextView) findViewById(R.id.console);
-
+        console.setMovementMethod(new ScrollingMovementMethod());
 
         String ipAddress = getIPAddress();
         TextView ipAddressTextView = (TextView) findViewById(R.id.ipaddress);
@@ -86,7 +88,7 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
         handler = new Handler(this);
 
         ToggleButton recordToggleBtn = (ToggleButton) findViewById(R.id.recordToggle);
-        audioCapture = new AudioCapture(this, recordToggleBtn, console);
+        audioCapture = new AudioCapture(recordToggleBtn, console);
     }
 
     @Override
@@ -206,7 +208,7 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
                 new PingRunnable(writerOutput).run();
                 Message _msg = handler.obtainMessage();
                 _msg.obj = PING;
-                handler.sendMessageDelayed(_msg, 5000);
+                handler.sendMessageDelayed(_msg, 100);
             }
         }
         return true;
@@ -223,10 +225,19 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
             try
             {
                 serverSocket = new ServerSocket(SERVERPORT);
+                serverSocket.setSoTimeout(0);
                 socket = serverSocket.accept();
+                socket.setSendBufferSize(1024 * 4);
 
                 new Thread(new DataInputStreamMonitorRunnable(socket)).start();
-                writerOutput = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+
+
+                // This is not used
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(socket.getOutputStream());
+                writerOutput = new BufferedWriter(outputStreamWriter);
+
+                final BufferedOutputStream bufferedOutputS = new BufferedOutputStream(socket.getOutputStream());
+
                 runOnUiThread(new Runnable()
                 {
                     @Override
@@ -234,6 +245,7 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
                     {
                         consoleMsg("Setting Socket address @ " + socket.toString());
                         audioCapture.setSocket(socket);
+                        audioCapture.setOutputStream(bufferedOutputS);
                         pingToggleBtn.setEnabled(true);
                     }
                 });
@@ -406,7 +418,7 @@ public class MainActivity2 extends ActionBarActivity implements Handler.Callback
     {
         private final DataInputStream inputStream;
         private Socket socket;
-        private byte[] byteBuffer = new byte[1024];
+        private byte[] byteBuffer = new byte[1024 * 4];
 
         DataInputStreamMonitorRunnable(Socket socket) throws IOException
         {

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent">
+
+    <!-- Header -->
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="20dp">
+
+        <ToggleButton
+            android:id="@+id/serviceToggleBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="Service ON"
+            android:textOff="Service OFF"/>
+
+        <TextView
+            android:id="@+id/ipaddress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No IP address available"/>
+
+        <ToggleButton
+            android:id="@+id/pingToggleBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="Ping ON"
+            android:textOff="Ping OFF"
+            android:visibility="visible"/>
+
+        <ToggleButton
+            android:id="@+id/recordToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="Recording Live"
+            android:textOff="Recording OFF"/>
+
+
+    </LinearLayout>
+
+    <!-- Console -->
+    <TextView
+        android:id="@+id/console"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        android:layout_below="@+id/header"
+        android:padding="20dp"/>
+
+</RelativeLayout>

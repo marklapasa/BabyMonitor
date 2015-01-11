@@ -1,13 +1,18 @@
 package net.lapasa.babymonitor.subscriber;
 
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioRecord;
+import android.media.AudioTrack;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-import java.io.DataInputStream;
+import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -41,6 +46,7 @@ public class MainActivity2 extends ActionBarActivity
         setContentView(R.layout.subscriber_dashboard);
 
         console = (TextView) findViewById(R.id.console);
+        console.setMovementMethod(new ScrollingMovementMethod());
 
         String ipAddress = getIPAddress();
         TextView ipAddressTextView = (TextView) findViewById(R.id.ipaddress);
@@ -81,32 +87,46 @@ public class MainActivity2 extends ActionBarActivity
 
     class DataInputStreamMonitorRunnable implements Runnable
     {
-        private final DataInputStream inputStream;
+        private final BufferedInputStream inputStream;
         private Socket socket;
-        private byte[] byteBuffer = new byte[1024];
+        private byte[] byteBuffer = new byte[1024 * 8];
+        private AudioTrack track;
 
         DataInputStreamMonitorRunnable(Socket socket) throws IOException
         {
             this.socket = socket;
-            inputStream = new DataInputStream(socket.getInputStream());
+//            inputStream = new DataInputStream(socket.getInputStream());
+            inputStream = new BufferedInputStream(socket.getInputStream());
         }
 
         @Override
         public void run()
         {
+            int id = 0;
+            int N = AudioRecord.getMinBufferSize(11025, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            track = new AudioTrack(AudioManager.STREAM_MUSIC, 11025,
+                    AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, N*10, AudioTrack.MODE_STREAM);
+            track.play();
+
+
             consoleMsg("Now listening for a response from the server...");
             while (socket != null)
             {
                 try
                 {
-                    inputStream.read(byteBuffer);
-                    String str = new String(byteBuffer, "UTF-8");
-                    consoleMsg(str);
+                    int read = inputStream.read(byteBuffer);
+//                    String str = new String(byteBuffer, "UTF-8");
+//                    consoleMsg(str);
+
+                    track.write(byteBuffer, 0, byteBuffer.length);
+//                    consoleMsg(Arrays.toString(byteBuffer));
+                    consoleMsg(id++ + " | " + String.valueOf(byteBuffer.length));
+
                 }
                 catch (IOException e)
                 {
                     consoleMsg("Failed to read data from Input Stream");
-                    socket = null;
+                    stopConnection();
                 }
             }
             consoleMsg("...stopped listening to the server.");
@@ -197,6 +217,8 @@ public class MainActivity2 extends ActionBarActivity
     class UpdateUIRunnable implements Runnable
     {
         private String msg;
+        private int LINE_COUNT = 25;
+
 
         public UpdateUIRunnable(String str)
         {
@@ -209,6 +231,10 @@ public class MainActivity2 extends ActionBarActivity
             Calendar c = Calendar.getInstance();
             String str = fmt.format(c.getTime()) + ": " + msg + "\n";
 
+            if (console.getLineCount() % LINE_COUNT == 0)
+            {
+                console.setText("");
+            }
             console.append(str);
 
             final int scrollAmount = console.getLayout().getLineTop(console.getLineCount()) - console.getHeight();
@@ -253,5 +279,46 @@ public class MainActivity2 extends ActionBarActivity
 
         return ip;
     }
+
+    /*class AudioPlaybackRunnable implements Runnable
+    {
+
+        private final DataInputStream inputStream;
+        private AudioTrack track;
+        short[] buffer  = new short[1]; // byte is 8-bit integer (-128 to +127), short 16-bit integer (-32,768 to 32,767)
+        int i = 0;
+        private boolean isPlaying = true;
+
+        public AudioPlaybackRunnable(DataInputStream inputStream)
+        {
+            this.inputStream = inputStream;
+        }
+
+        @Override
+        public void run()
+        {
+            int N = AudioRecord.getMinBufferSize(11025, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
+            track = new AudioTrack(AudioManager.STREAM_MUSIC, 11025,
+                    AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, N*10, AudioTrack.MODE_STREAM);
+            track.play();
+
+            while(isPlaying)
+            {
+                try
+                {
+                    buffer[0] = inputStream.readShort();
+                    track.write(buffer, 0, 1);
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                    isPlaying = false;
+                }
+            }
+
+            track.stop();
+            track.release();
+        }
+    }*/
 
 }
