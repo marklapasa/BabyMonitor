@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/BabyMonitor.iml" filepath="$PROJECT_DIR$/BabyMonitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/Publisher/Publisher.iml" filepath="$PROJECT_DIR$/Publisher/Publisher.iml" />
       <module fileurl="file://$PROJECT_DIR$/Subscriber/Subscriber.iml" filepath="$PROJECT_DIR$/Subscriber/Subscriber.iml" />
+      <module fileurl="file://$PROJECT_DIR$/commonlib/commonlib.iml" filepath="$PROJECT_DIR$/commonlib/commonlib.iml" />
     </modules>
   </component>
 </project>

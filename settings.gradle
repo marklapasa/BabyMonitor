@@ -1,1 +1,1 @@
-include ':Publisher', ':Subscriber'
+include ':Publisher', ':Subscriber', ':babymonitorcommon'
